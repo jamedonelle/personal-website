@@ -58,6 +58,18 @@ ul.list p { margin: 0.25rem 0 0; }
 footer.site { border-top: 1px solid var(--border); color: var(--muted); font-size: 0.9rem; }
 footer.site .wrap { padding-block: 2rem; }
 
+/* Dithered photo fixed behind the page (DitherBackground) */
+main.wrap > .dither-bg {
+  position: fixed; inset: 0; z-index: -1; width: auto; max-width: none; margin: 0;
+  background-position: center; background-size: cover; image-rendering: pixelated;
+}
+/* a hard sage outline keeps text readable where it crosses the dots */
+body:has(.dither-bg) :is(header.site a, .hero h1, .hero .lede) {
+  --o: var(--bg);
+  text-shadow: 2px 0 var(--o), -2px 0 var(--o), 0 2px var(--o), 0 -2px var(--o),
+    2px 2px var(--o), -2px -2px var(--o), 2px -2px var(--o), -2px 2px var(--o);
+}
+
 .hero { text-align: center; padding-block: 2rem; }
 .hero .eyebrow { margin: 0 0 0.5rem; font-size: 1.25rem; font-weight: 600; color: var(--muted); }
 .hero h1 { font-size: clamp(2.75rem, 10vw, 5rem); font-weight: 800; line-height: 1.05; margin: 0 0 1.5rem; letter-spacing: -0.02em; }

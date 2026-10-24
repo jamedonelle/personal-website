@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import DitherBackground from '../components/DitherBackground.astro';
 
 interface Props {
   title: string;
@@ -46,6 +47,8 @@ const fullTitle = title === 'Home' ? 'James Donelle' : `${title} · James Donell
       </div>
     </header>
     <main class={content}>
+      {/* the levels lift the sky so it reads as mostly sage */}
+      <DitherBackground src="/jerry-zhang-SJGiS1JzUCc-unsplash.jpg" levels={[40, 180]} />
       <slot />
     </main>
     <footer class="site">

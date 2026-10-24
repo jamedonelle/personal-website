@@ -8,18 +8,28 @@ export async function getStaticPaths() {
 }
 
 const { book } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const { Content } = await render(book);
 const stars = (n?: number) => (n ? '★'.repeat(n) + '☆'.repeat(5 - n) : '');
 ---
 
 <Base title={book.data.title}>
   <article>
-    <h1>{book.data.title}</h1>
-    <p class="meta">
-      by {book.data.author}
-      {book.data.rating && <> · {stars(book.data.rating)}</>}
-      {book.data.finished && <> · finished {book.data.finished.toLocaleDateString('en-US', { dateStyle: 'long' })}</>}
-    </p>
+    <header class="detail-head">
+      {book.data.cover ? (
+        <img class="detail-cover book" src={`${base}${book.data.cover}`} alt={`Cover of ${book.data.title}`} />
+      ) : (
+        <div class="detail-cover book cover-blank">{book.data.title}</div>
+      )}
+      <div class="detail-text">
+        <h1>{book.data.title}</h1>
+        <p class="detail-by">by {book.data.author}</p>
+        <p class="meta">
+          {book.data.rating && <>{stars(book.data.rating)}</>}
+          {book.data.finished && <>{book.data.rating && ' · '}finished {book.data.finished.toLocaleDateString('en-US', { dateStyle: 'long' })}</>}
+        </p>
+      </div>
+    </header>
     <Content />
   </article>
 </Base>

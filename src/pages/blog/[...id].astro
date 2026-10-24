@@ -3,21 +3,54 @@ import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 
 export async function getStaticPaths() {
-  const posts = await getCollection('blog', (p) => !p.data.draft);
-  return posts.map((post) => ({ params: { id: post.id }, props: { post } }));
+  const posts = (await getCollection('blog', (p) => !p.data.draft)).sort(
+    (a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf(),
+  );
+  // Sorted oldest first, so the neighbour before a post is the one written just before it.
+  return posts.map((post, i) => ({
+    params: { id: post.id },
+    props: { post, older: posts[i - 1], newer: posts[i + 1] },
+  }));
 }
 
-const { post } = Astro.props;
+const { post, older, newer } = Astro.props;
 const { Content } = await render(post);
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const minutes = Math.max(1, Math.round((post.body ?? '').split(/\s+/).filter(Boolean).length / 220));
 ---
 
 <Base title={post.data.title} description={post.data.description}>
-  <article>
-    <h1>{post.data.title}</h1>
-    <p class="meta">
-      {post.data.pubDate.toLocaleDateString('en-US', { dateStyle: 'long' })}
-      {post.data.tags.map((t) => <span class="tag">{t}</span>)}
-    </p>
+  <article class="post">
+    <header class="post-head">
+      <h1>{post.data.title}</h1>
+      <div class="post-meta meta">
+        <time datetime={post.data.pubDate.toISOString()}>
+          {post.data.pubDate.toLocaleDateString('en-US', { dateStyle: 'long' })}
+        </time>
+        <span aria-hidden="true">·</span>
+        <span>{minutes} min read</span>
+        {post.data.tags.map((t) => <span class="tag">{t}</span>)}
+      </div>
+    </header>
+
     <Content />
+
+    {(older || newer) && (
+      <nav class="post-nav" aria-label="More posts">
+        {older && (
+          <a class="prev" href={`${base}/blog/${older.id}/`}>
+            <span class="post-nav-label">← Older</span>
+            <span class="post-nav-title">{older.data.title}</span>
+          </a>
+        )}
+        {newer && (
+          <a class="next" href={`${base}/blog/${newer.id}/`}>
+            <span class="post-nav-label">Newer →</span>
+            <span class="post-nav-title">{newer.data.title}</span>
+          </a>
+        )}
+      </nav>
+    )}
+    <p class="post-all"><a href={`${base}/blog/`}>← All posts</a></p>
   </article>
 </Base>

@@ -1,0 +1,33 @@
+---
+// A dithered <img>, generated at build time. `src` is a path in public/ or a remote URL.
+//   <Dither src="/covers/deep-work.jpg" mode="atkinson" alt="Deep Work" />
+import type { HTMLAttributes } from 'astro/types';
+import { dither, type DitherMode } from '../lib/dither';
+
+type Props = Omit<HTMLAttributes<'img'>, 'src'> & {
+  src: string;
+  mode?: DitherMode;
+  pixel?: number;
+  colors?: number;
+  ink?: string;
+  paper?: string;
+};
+
+const { src, mode, pixel, colors, ink, paper, ...attrs } = Astro.props;
+
+// Fall back to the original image rather than failing the build.
+let out = src;
+try {
+  out = (await dither(src, { mode, pixel, colors, ink, paper })).src;
+} catch (err) {
+  console.warn(`[dither] could not dither "${src}":`, err);
+}
+---
+
+<img src={out} {...attrs} />
+
+<style>
+  img {
+    image-rendering: pixelated;
+  }
+</style>

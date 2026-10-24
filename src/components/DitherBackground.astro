@@ -1,0 +1,17 @@
+---
+// A photo dithered to the site's sage and a muted darker green at build time, fixed behind the
+// whole page; the green is light enough that the site's black text stays legible on it.
+// It's kept small and CSS scales it up with crisp edges, so the dots stay chunky at any screen
+// size. `levels` lifts or darkens the photo; global.css outlines the text that sits on top.
+//   <DitherBackground src="/photo.jpg" levels={[40, 180]} />
+import { dither, type DitherOptions } from '../lib/dither';
+
+type Props = DitherOptions & { src: string };
+
+const { src, ...options } = Astro.props;
+const bg = await dither(src, {
+  mode: 'atkinson', width: 640, pixel: 1, ink: '#849673', paper: '#b2c2a0', ...options,
+});
+---
+
+<div class="dither-bg" style={`background-image: url(${bg.src})`} aria-hidden="true"></div>
