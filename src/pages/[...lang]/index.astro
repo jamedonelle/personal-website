@@ -1,6 +1,11 @@
 ---
-import Base from '../layouts/Base.astro';
-import PixelMe from '../components/PixelMe.astro';
+import Base from '../../layouts/Base.astro';
+import PixelMe from '../../components/PixelMe.astro';
+import { getLang, langParams, ui } from '../../lib/i18n';
+
+export const getStaticPaths = () => langParams.map((params) => ({ params }));
+
+const t = ui[getLang(Astro.url)];
 
 const links = [
   {
@@ -27,7 +32,7 @@ const friends = [{ name: 'Bill', href: 'https://13ill.me' }];
   <section class="hero">
     <PixelMe />
     <h1>James Donelle</h1>
-    <p class="lede">Software developer based in the Greater Moncton area.</p>
+    <p class="lede">{t.lede}</p>
     <ul class="social">
       {links.map((l) => (
         <li>
@@ -42,23 +47,21 @@ const friends = [{ name: 'Bill', href: 'https://13ill.me' }];
   </section>
 
   <section class="spotlight">
-    <p class="spotlight-label">Spotlight</p>
+    <p class="spotlight-label">{t.spotlight}</p>
     <h2>2hundred</h2>
-    <p>
-      An online multiplayer version of the card game 200.
-    </p>
+    <p>{t.spotlightText}</p>
     <a class="spotlight-link" href="https://2hundred.vercel.app/" target="_blank" rel="noopener noreferrer">
-      Play 2hundred →
+      {t.play('2hundred')}
     </a>
   </section>
 
   {friends.length > 0 && (
     <section class="friends">
-      <p class="spotlight-label">Friends</p>
+      <p class="spotlight-label">{t.friends}</p>
       <ul>
         {friends.map((f) => (
           <li>
-            <a href={f.href} target="_blank" rel="noopener noreferrer">{f.name}'s site →</a>
+            <a href={f.href} target="_blank" rel="noopener noreferrer">{t.friendSite(f.name)}</a>
           </li>
         ))}
       </ul>

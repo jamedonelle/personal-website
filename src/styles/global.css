@@ -35,6 +35,17 @@ header.site nav a { font-weight: 600; }
 header.site nav a { color: var(--muted); text-decoration: none; }
 header.site nav a:hover, header.site nav a[aria-current='page'] { color: var(--fg); }
 
+/* EN | FR language toggle at the end of the nav */
+header.site nav { align-items: center; }
+.lang-toggle { display: flex; background: var(--bg); border: 2px solid var(--accent); }
+header.site nav .lang-toggle a {
+  padding: 0 0.45rem; font-size: 0.8rem; font-weight: 800; line-height: 1.7; color: var(--accent);
+}
+header.site nav .lang-toggle a:hover { background: var(--border); color: var(--fg); }
+header.site nav .lang-toggle a[aria-current] { background: var(--accent); color: var(--bg); }
+/* no sage outline on the toggle; it has its own background */
+body:has(.dither-bg) header.site .lang-toggle a { text-shadow: none; }
+
 main.wrap { padding-block: 3rem 4rem; flex: 1; width: 100%; display: flex; flex-direction: column; justify-content: center; }
 h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 0.5rem; }
 h2 { margin-top: 2rem; }
@@ -115,7 +126,14 @@ body:has(.dither-bg) :is(header.site a, .hero h1, .hero .lede) {
   background: var(--accent); color: var(--bg); font-weight: 700;
 }
 .cover-title { font-weight: 700; line-height: 1.3; }
-.stars { letter-spacing: 0.1em; }
+/* Pixel star rating (Stars) */
+.stars { display: inline-flex; gap: 4px; vertical-align: -6px; }
+/* exactly 2 screen pixels per art pixel keeps the edges sharp */
+.star { width: 26px; height: 24px; shape-rendering: crispEdges; }
+.star-edge { fill: var(--border); }
+.star-fill { fill: var(--card); }
+.star .on .star-edge { fill: #7a4a12; }
+.star .on .star-fill { fill: #f2b632; }
 
 .wrap.wide { max-width: 72rem; }
 /* Text pages keep a readable column, centred under the full-width header */
@@ -269,7 +287,19 @@ body:has(.dither-bg) :is(header.site a, .hero h1, .hero .lede) {
   .playlist-card { width: 100%; max-width: 20rem; }
 }
 
-/* Book / album detail pages: cover next to title and author or artist */
+/* Book / album detail pages: a white card so the text reads over the dithered background */
+.detail-card {
+  padding: 1.75rem 2rem; background: var(--card);
+  border: 3px solid var(--accent); box-shadow: 0.4rem 0.4rem 0 var(--accent);
+}
+.detail-card > :last-child, .detail-body > :last-child { margin-bottom: 0; }
+.detail-body > :first-child { margin-top: 0; }
+/* the "not translated yet" note above English text on a French page */
+.untranslated { margin: 0 0 1rem; color: var(--muted); font-size: 0.9rem; font-style: italic; }
+@media (max-width: 36rem) {
+  .detail-card { padding: 1.25rem; }
+}
+/* cover next to title and author or artist */
 .detail-head { display: flex; align-items: flex-end; gap: 1.75rem; margin-bottom: 2rem; }
 .detail-cover {
   flex: none; width: 11rem; aspect-ratio: 1; object-fit: cover;

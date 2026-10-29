@@ -1,0 +1,51 @@
+---
+import { getLang, ui } from '../lib/i18n';
+
+interface Props {
+  rating: number;
+}
+const { rating } = Astro.props;
+const t = ui[getLang(Astro.url)];
+
+// A 13×12 pixel star. Pixels on the shape's edge become the outline, the rest the fill.
+// Each star is drawn as a left and a right half so a rating can end on a half star.
+const shape = [
+  '......#......',
+  '.....###.....',
+  '.....###.....',
+  '....#####....',
+  '#############',
+  '.###########.',
+  '..#########..',
+  '...#######...',
+  '...#######...',
+  '..####.####..',
+  '..###...###..',
+  '.##.......##.',
+];
+const on = (x: number, y: number) => shape[y]?.[x] === '#';
+const halves = [0, 1].map(() => ({ edge: '', fill: '' }));
+shape.forEach((row, y) =>
+  [...row].forEach((_, x) => {
+    if (!on(x, y)) return;
+    // the centre column goes with the left half, so a half star reads as a whole tip
+    const half = halves[x <= 6 ? 0 : 1];
+    const d = `M${x} ${y}h1v1h-1z`;
+    if (on(x - 1, y) && on(x + 1, y) && on(x, y - 1) && on(x, y + 1)) half.fill += d;
+    else half.edge += d;
+  }),
+);
+---
+
+<span class="stars" role="img" aria-label={t.stars(rating.toLocaleString(t.locale))}>
+  {[1, 2, 3, 4, 5].map((i) => (
+    <svg class="star" viewBox="0 0 13 12" aria-hidden="true">
+      {halves.map((h, side) => (
+        <g class:list={{ on: i - (side === 0 ? 0.5 : 0) <= rating }}>
+          <path class="star-edge" d={h.edge} />
+          <path class="star-fill" d={h.fill} />
+        </g>
+      ))}
+    </svg>
+  ))}
+</span>

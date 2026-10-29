@@ -1,0 +1,50 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import Stars from '../../../components/Stars.astro';
+import { formatDate, frenchOf, getLang, langParams, ui } from '../../../lib/i18n';
+
+export async function getStaticPaths() {
+  const books = await getCollection('books');
+  return langParams.flatMap(({ lang }) =>
+    books.map((book) => ({ params: { lang, id: book.id }, props: { book } })),
+  );
+}
+
+const { book } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const lang = getLang(Astro.url);
+const t = ui[lang];
+// French pages use books/fr/<same name>.md when it exists, and fall back to the English thoughts.
+const french = lang === 'fr' ? await frenchOf('books', book.id) : undefined;
+const entry = french ?? book;
+const hasThoughts = Boolean(entry.body?.trim());
+const untranslated = lang === 'fr' && !french && hasThoughts;
+const { Content } = await render(entry);
+---
+
+<Base title={book.data.title}>
+  <article class="detail-card">
+    <header class="detail-head">
+      {book.data.cover ? (
+        <img class="detail-cover book" src={`${base}${book.data.cover}`} alt={t.bookCover(book.data.title)} />
+      ) : (
+        <div class="detail-cover book cover-blank">{book.data.title}</div>
+      )}
+      <div class="detail-text">
+        <h1>{book.data.title}</h1>
+        <p class="detail-by">{book.data.author}</p>
+        <p class="meta">
+          {book.data.rating && <Stars rating={book.data.rating} />}
+          {book.data.finished && <>{book.data.rating && ' · '}{t.finished(formatDate(lang, book.data.finished))}</>}
+        </p>
+      </div>
+    </header>
+    {untranslated && <p class="untranslated">{t.notTranslated}</p>}
+    {hasThoughts && (
+      <div class="detail-body" lang={untranslated ? 'en' : undefined}>
+        <Content />
+      </div>
+    )}
+  </article>
+</Base>

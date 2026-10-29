@@ -1,0 +1,72 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import { formatDate, frenchOf, getLang, href, langParams, ui } from '../../../lib/i18n';
+
+export async function getStaticPaths() {
+  const posts = (await getCollection('blog', (p) => !p.data.draft)).sort(
+    (a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf(),
+  );
+  // Sorted oldest first, so the neighbour before a post is the one written just before it.
+  return langParams.flatMap(({ lang }) =>
+    posts.map((post, i) => ({
+      params: { lang, id: post.id },
+      props: { post, older: posts[i - 1], newer: posts[i + 1] },
+    })),
+  );
+}
+
+const { post, older, newer } = Astro.props;
+const lang = getLang(Astro.url);
+const t = ui[lang];
+// French pages use blog/fr/<same name>.md when it exists, and fall back to the English post.
+const frenchFor = async (p: typeof post) => (lang === 'fr' ? await frenchOf('blog', p.id) : undefined);
+const french = await frenchFor(post);
+const untranslated = lang === 'fr' && !french;
+const title = french?.data.title ?? post.data.title;
+const description = french?.data.description ?? post.data.description;
+const { Content } = await render(french ?? post);
+const body = (french ?? post).body ?? '';
+const minutes = Math.max(1, Math.round(body.split(/\s+/).filter(Boolean).length / 220));
+const olderTitle = older && ((await frenchFor(older))?.data.title ?? older.data.title);
+const newerTitle = newer && ((await frenchFor(newer))?.data.title ?? newer.data.title);
+---
+
+<Base title={title} description={description}>
+  <article class="post">
+    <header class="post-head">
+      <h1 lang={untranslated ? 'en' : undefined}>{title}</h1>
+      <div class="post-meta meta">
+        <time datetime={post.data.pubDate.toISOString()}>
+          {formatDate(lang, post.data.pubDate)}
+        </time>
+        <span aria-hidden="true">·</span>
+        <span>{t.minRead(minutes)}</span>
+        {post.data.tags.map((t) => <span class="tag">{t}</span>)}
+      </div>
+    </header>
+
+    {untranslated && <p class="untranslated">{t.notTranslated}</p>}
+    <div lang={untranslated ? 'en' : undefined}>
+      <Content />
+    </div>
+
+    {(older || newer) && (
+      <nav class="post-nav" aria-label={t.morePosts}>
+        {older && (
+          <a class="prev" href={href(lang, `/blog/${older.id}/`)}>
+            <span class="post-nav-label">{t.older}</span>
+            <span class="post-nav-title">{olderTitle}</span>
+          </a>
+        )}
+        {newer && (
+          <a class="next" href={href(lang, `/blog/${newer.id}/`)}>
+            <span class="post-nav-label">{t.newer}</span>
+            <span class="post-nav-title">{newerTitle}</span>
+          </a>
+        )}
+      </nav>
+    )}
+    <p class="post-all"><a href={href(lang, '/blog/')}>{t.allPosts}</a></p>
+  </article>
+</Base>

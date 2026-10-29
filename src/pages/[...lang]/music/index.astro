@@ -1,11 +1,16 @@
 ---
 import { getCollection } from 'astro:content';
-import Base from '../../layouts/Base.astro';
-import EmptyState from '../../components/EmptyState.astro';
-import PixelRecordPlayer from '../../components/PixelRecordPlayer.astro';
-import { albumCover } from '../../lib/covers';
+import Base from '../../../layouts/Base.astro';
+import EmptyState from '../../../components/EmptyState.astro';
+import PixelRecordPlayer from '../../../components/PixelRecordPlayer.astro';
+import { albumCover } from '../../../lib/covers';
+import { getLang, href, langParams, ui } from '../../../lib/i18n';
+
+export const getStaticPaths = () => langParams.map((params) => ({ params }));
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const lang = getLang(Astro.url);
+const t = ui[lang];
 const entries = await getCollection('music');
 const albums = entries.filter((e) => e.data.kind === 'album');
 
@@ -40,27 +45,27 @@ const coverFor = new Map<string, string | undefined>(
 );
 ---
 
-<Base title="Music" wide>
-  <h1 class="page-title">Music</h1>
-  {entries.length === 0 && <EmptyState what="music" variant="music" />}
+<Base title={t.music} wide>
+  <h1 class="page-title">{t.music}</h1>
+  {entries.length === 0 && <EmptyState variant="music" />}
 
   {topSections.length > 0 && (
     <div class:list={['split', { single: topSections.length < 2 }]}>
       {onRepeat.length > 0 && (
         <section>
-          <h2>On repeat</h2>
+          <h2>{t.onRepeat}</h2>
           <ul class="repeat-list">
             {onRepeat.map((a) => (
               <li>
-                <a class="repeat-art" href={`${base}/music/${a.id}/`}>
+                <a class="repeat-art" href={href(lang, `/music/${a.id}/`)}>
                   {coverFor.get(a.id) ? (
-                    <img src={coverFor.get(a.id)} alt={`Cover of ${a.data.title}`} />
+                    <img src={coverFor.get(a.id)} alt={t.albumCover(a.data.title)} />
                   ) : (
                     <span class="cover-blank">{a.data.title}</span>
                   )}
                 </a>
                 <div class="repeat-text">
-                  <a class="cover-title" href={`${base}/music/${a.id}/`}>{a.data.title}</a>
+                  <a class="cover-title" href={href(lang, `/music/${a.id}/`)}>{a.data.title}</a>
                   <span class="meta">{a.data.artist}</span>
                 </div>
               </li>
@@ -77,18 +82,18 @@ const coverFor = new Map<string, string | undefined>(
 
       {favorites.length > 0 && (
         <section>
-          <h2>Favorite albums</h2>
+          <h2>{t.favoriteAlbums}</h2>
           <ul class="sleeves">
             {favorites.map((a) => (
               <li>
                 <a
                   class="sleeve"
-                  href={`${base}/music/${a.id}/`}
+                  href={href(lang, `/music/${a.id}/`)}
                   title={`${a.data.title} · ${a.data.artist}${a.data.year ? ` · ${a.data.year}` : ''}`}
                 >
                   <span class="vinyl" aria-hidden="true"></span>
                   {coverFor.get(a.id) ? (
-                    <img src={coverFor.get(a.id)} alt={`Cover of ${a.data.title}`} loading="lazy" />
+                    <img src={coverFor.get(a.id)} alt={t.albumCover(a.data.title)} loading="lazy" />
                   ) : (
                     <span class="sleeve-blank">{a.data.title}</span>
                   )}
@@ -104,16 +109,16 @@ const coverFor = new Map<string, string | undefined>(
 
   {playlists.length > 0 && (
     <section class="playlists">
-      <h2>Playlists</h2>
+      <h2>{t.playlists}</h2>
       <ul class="playlist-grid">
         {playlists.map((p) => (
           <li class="playlist-card">
             <h3>{p.data.title}</h3>
             {p.data.description && <p>{p.data.description}</p>}
             {p.data.link ? (
-              <a href={p.data.link} target="_blank" rel="noopener noreferrer">Listen →</a>
+              <a href={p.data.link} target="_blank" rel="noopener noreferrer">{t.listen} →</a>
             ) : (
-              <span class="meta">Link coming soon</span>
+              <span class="meta">{t.linkSoon}</span>
             )}
           </li>
         ))}

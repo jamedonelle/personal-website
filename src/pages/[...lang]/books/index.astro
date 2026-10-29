@@ -1,10 +1,15 @@
 ---
 import { getCollection } from 'astro:content';
-import Base from '../../layouts/Base.astro';
-import EmptyState from '../../components/EmptyState.astro';
-import PixelBook from '../../components/PixelBook.astro';
+import Base from '../../../layouts/Base.astro';
+import EmptyState from '../../../components/EmptyState.astro';
+import PixelBook from '../../../components/PixelBook.astro';
+import { getLang, href, langParams, ui } from '../../../lib/i18n';
+
+export const getStaticPaths = () => langParams.map((params) => ({ params }));
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const lang = getLang(Astro.url);
+const t = ui[lang];
 const books = await getCollection('books');
 // Newest finish date first; books without a date follow, alphabetically.
 const byFinished = (a: (typeof books)[number], b: (typeof books)[number]) => {
@@ -18,22 +23,24 @@ const byFinished = (a: (typeof books)[number], b: (typeof books)[number]) => {
 const groups = [
   {
     key: 'reading',
-    label: 'Currently reading',
+    label: t.currentlyReading,
     items: books.filter((b) => b.data.status === 'reading'),
   },
   {
     key: 'finished',
-    label: 'Previously read',
+    label: t.previouslyRead,
     items: books.filter((b) => b.data.status === 'finished').sort(byFinished),
   },
 ].filter((g) => g.items.length > 0);
 
-const stars = (n?: number) => (n ? '★'.repeat(n) + '☆'.repeat(5 - n) : '');
+// Text stars for the hover tooltip, where the pixel stars can't go; ½ marks a half star.
+const stars = (n?: number) =>
+  n ? '★'.repeat(Math.floor(n)) + (n % 1 ? '½' : '') + '☆'.repeat(5 - Math.ceil(n)) : '';
 ---
 
-<Base title="Books" wide>
-  <h1 class="page-title">Books</h1>
-  {groups.length === 0 && <EmptyState what="books" variant="books" />}
+<Base title={t.books} wide>
+  <h1 class="page-title">{t.books}</h1>
+  {groups.length === 0 && <EmptyState variant="books" />}
   <div class:list={['split', { single: groups.length < 2 }]}>
     {groups.map((g, i) => (
       <>
@@ -48,9 +55,9 @@ const stars = (n?: number) => (n ? '★'.repeat(n) + '☆'.repeat(5 - n) : '');
           <ul class="cover-grid big">
             {g.items.map((b) => (
               <li class="cover-card">
-                <a class="cover-link" href={`${base}/books/${b.id}/`}>
+                <a class="cover-link" href={href(lang, `/books/${b.id}/`)}>
                   {b.data.cover ? (
-                    <img class="cover" src={`${base}${b.data.cover}`} alt={`Cover of ${b.data.title}`} />
+                    <img class="cover" src={`${base}${b.data.cover}`} alt={t.bookCover(b.data.title)} />
                   ) : (
                     <div class="cover cover-blank">{b.data.title}</div>
                   )}
@@ -67,11 +74,11 @@ const stars = (n?: number) => (n ? '★'.repeat(n) + '☆'.repeat(5 - n) : '');
                 <li>
                   <a
                     class="spine"
-                    href={`${base}/books/${b.id}/`}
+                    href={href(lang, `/books/${b.id}/`)}
                     title={`${b.data.title} · ${b.data.author}${b.data.rating ? ` · ${stars(b.data.rating)}` : ''}`}
                   >
                     {b.data.cover ? (
-                      <img src={`${base}${b.data.cover}`} alt={`Cover of ${b.data.title}`} loading="lazy" />
+                      <img src={`${base}${b.data.cover}`} alt={t.bookCover(b.data.title)} loading="lazy" />
                     ) : (
                       <span class="spine-blank">{b.data.title}</span>
                     )}

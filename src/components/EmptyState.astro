@@ -2,20 +2,21 @@
 import PixelComputer from './PixelComputer.astro';
 import PixelBook from './PixelBook.astro';
 import PixelRecordPlayer from './PixelRecordPlayer.astro';
+import { getLang, href, ui } from '../lib/i18n';
 
 interface Props {
-  what: string;
   variant: 'blog' | 'books' | 'music';
 }
-const { what, variant } = Astro.props;
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const { variant } = Astro.props;
+const lang = getLang(Astro.url);
+const t = ui[lang];
 ---
 
 <div class="empty">
   {variant === 'blog' && <PixelComputer />}
   {variant === 'books' && <PixelBook />}
   {variant === 'music' && <PixelRecordPlayer />}
-  <p class="empty-title">Nothing to see here.</p>
-  <p class="empty-sub">No {what} yet. Check back soon.</p>
-  <a class="empty-link" href={`${base}/`}>Back home</a>
+  <p class="empty-title">{t.nothingHere}</p>
+  <p class="empty-sub">{t.noneYet[variant]}</p>
+  <a class="empty-link" href={href(lang, '/')}>{t.backHome}</a>
 </div>
